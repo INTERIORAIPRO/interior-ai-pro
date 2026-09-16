@@ -1,9 +1,7 @@
 const express = require('express');
 const multer = require('multer');
-const cors = require('cors');
 
 const app = express();
-app.use(cors());
 const upload = multer({ storage: multer.memoryStorage() });
 
 const databaseTheHome = {
