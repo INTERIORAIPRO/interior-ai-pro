@@ -1,4 +1,6 @@
 const express = require('express');
+const multer = require('multer');
+const upload = multer(); // Pregătit pentru a prelua fișiere multipart trimise din Expo
 const app = express();
 
 app.use(express.json({ limit: '50mb' }));
@@ -23,17 +25,25 @@ const bazaDateTheHome = {
   ]
 };
 
-app.post('/redecorate', async (req, res) => {
+// Folosim upload.any() pentru a putea prelua atât fișierele, cât și câmpurile text trimise din aplicație
+app.post('/redecorate', upload.any(), async (req, res) => {
   try {
-    const { roomImageBase64, selectedStyle, budget, roomType } = req.body;
+    // Preluăm datele indiferent dacă vin în body sau ca fișiere
+    const bodyData = req.body || {};
+    const selectedStyle = bodyData.selectedStyle || 'Modern';
+    const roomType = bodyData.roomType || 'Sufragerie';
+    
+    // Dacă poza vine ca Base64 în body sau ca fișier atașat
+    let roomImageBase64 = bodyData.roomImageBase64;
+    if (!roomImageBase64 && req.files && req.files.length > 0) {
+      roomImageBase64 = `data:image/jpeg;base64,${req.files[0].buffer.toString('base64')}`;
+    }
 
     if (!roomImageBase64) {
       return res.status(400).json({ error: 'Lipsește poza camerei.' });
     }
 
-    const styleKey = selectedStyle || 'Modern';
-    const rawProducts = bazaDateTheHome[styleKey] || bazaDateTheHome['Modern'];
-    
+    const rawProducts = bazaDateTheHome[selectedStyle] || bazaDateTheHome['Modern'];
     const theHomeProducts = rawProducts.map(p => ({
       id: p.id,
       name: p.name,
@@ -41,11 +51,10 @@ app.post('/redecorate', async (req, res) => {
       url: p.url
     }));
 
-    let finalRenderUrl = roomImageBase64; // Fallback implicit
+    let finalRenderUrl = roomImageBase64;
 
     if (process.env.REPLICATE_API_TOKEN) {
       try {
-        // 1. Inițiem predicția pe Replicate (folosind un model stabil de image-to-image / SDXL)
         const responseAI = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
           headers: {
@@ -53,11 +62,10 @@ app.post('/redecorate', async (req, res) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            // Folosim modelul SDXL img2img sau un model general de pe Replicate
             version: "7762fd07cf82c948538e41f63f7d068bf62fc1f6810ad1334bdc31d6f5170d2f",
             input: {
               image: roomImageBase64,
-              prompt: `A professional interior design photo of a ${roomType || 'room'}, ${styleKey} style, high-end furniture, luxury decor, photorealistic, 8k resolution`,
+              prompt: `A professional interior design photo of a ${roomType}, ${selectedStyle} style, high-end furniture, luxury decor, photorealistic, 8k resolution`,
               prompt_strength: 0.75,
               num_outputs: 1
             }
@@ -67,12 +75,11 @@ app.post('/redecorate', async (req, res) => {
         let prediction = await responseAI.json();
 
         if (prediction && prediction.id) {
-          // 2. Verificăm periodic starea (pooling) până când AI-ul termină de randat poza
           let getUrl = prediction.urls.get;
           let status = prediction.status;
 
           while (status !== "succeeded" && status !== "failed" && status !== "canceled") {
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Așteptăm 2 secunde între verificări
+            await new Promise(resolve => setTimeout(resolve, 2000));
             const checkRes = await fetch(getUrl, {
               headers: {
                 'Authorization': `Bearer ${process.env.REPLICATE_API_TOKEN}`,
