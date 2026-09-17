@@ -32,12 +32,19 @@ app.post('/redecorate', async (req, res) => {
     }
 
     const styleKey = selectedStyle || 'Modern';
-    const products = bazaDateTheHome[styleKey] || bazaDateTheHome['Modern'];
+    const rawProducts = bazaDateTheHome[styleKey] || bazaDateTheHome['Modern'];
+    
+    // Trimitem explicit 'price' și 'url' corecte către aplicație
+    const theHomeProducts = rawProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: p.pret,
+      url: p.url
+    }));
 
-    // Răspunsul trimis înapoi către aplicația ta React Native
     res.json({
-      uniqueAiRenderUrl: roomImageBase64, // Poți pune aici link-ul imaginii generate de AI dacă ai integrare, sau imaginea primită
-      theHomeProducts: products
+      uniqueAiRenderUrl: roomImageBase64,
+      theHomeProducts: theHomeProducts
     });
 
   } catch (error) {
