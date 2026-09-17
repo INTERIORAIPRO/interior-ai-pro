@@ -6,20 +6,20 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const bazaDateTheHome = {
   "Modern": [
-    { id: "m1", name: "Canapea Velvet lux", pret: 3999, url: "https://www.thehome.ro/canapea-extensibila-velvet-lux" },
-    { id: "m2", name: "Măsuță cafea Glass Modern", pret: 799, url: "https://www.thehome.ro/masuta-cafea-glass" }
+    { id: "m1", name: "Canapea Velvet lux", pret: 3999, url: "https://www.thehome.ro/catalogsearch/result/?q=canapea" },
+    { id: "m2", name: "Măsuță cafea Glass Modern", pret: 799, url: "https://www.thehome.ro/catalogsearch/result/?q=masuta+cafea" }
   ],
   "Scandinav": [
-    { id: "s1", name: "Fotografie Nordic Minimal", pret: 1299, url: "https://www.thehome.ro/fotoliu-nordic" },
-    { id: "s2", name: "Lampă de lemn naturală", pret: 450, url: "https://www.thehome.ro/lampadar-lemn" }
+    { id: "s1", name: "Fotografie Nordic Minimal", pret: 1299, url: "https://www.thehome.ro/catalogsearch/result/?q=fotoliu" },
+    { id: "s2", name: "Lampă de lemn naturală", pret: 450, url: "https://www.thehome.ro/catalogsearch/result/?q=lampadar" }
   ],
   "Industrial": [
-    { id: "i1", name: "Bibliotecă Metal & Lemn", pret: 2100, url: "https://www.thehome.ro/biblioteca-industrial" },
-    { id: "i2", name: "Bară metalică Scaun", pret: 350, url: "https://www.thehome.ro/scaun-bar" }
+    { id: "i1", name: "Bibliotecă Metal & Lemn", pret: 2100, url: "https://www.thehome.ro/catalogsearch/result/?q=biblioteca" },
+    { id: "i2", name: "Bară metalică Scaun", pret: 350, url: "https://www.thehome.ro/catalogsearch/result/?q=scaun" }
   ],
   "Minimalist": [
-    { id: "min1", name: "Comodă TV Minimalistă", pret: 1599, url: "https://www.thehome.ro/comoda-tv" },
-    { id: "min2", name: "Covor geometric simplu", pret: 899, url: "https://www.thehome.ro/covor-minimalist" }
+    { id: "min1", name: "Comodă TV Minimalistă", pret: 1599, url: "https://www.thehome.ro/catalogsearch/result/?q=comoda+tv" },
+    { id: "min2", name: "Covor geometric simplu", pret: 899, url: "https://www.thehome.ro/catalogsearch/result/?q=covor" }
   ]
 };
 
@@ -34,7 +34,6 @@ app.post('/redecorate', async (req, res) => {
     const styleKey = selectedStyle || 'Modern';
     const rawProducts = bazaDateTheHome[styleKey] || bazaDateTheHome['Modern'];
     
-    // Trimitem explicit 'price' și 'url' corecte către aplicație
     const theHomeProducts = rawProducts.map(p => ({
       id: p.id,
       name: p.name,
