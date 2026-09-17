@@ -43,10 +43,52 @@ app.post('/redecorate', async (req, res) => {
 
     let finalRenderUrl = roomImageBase64; // Fallback implicit
 
-    // Verificăm dacă avem configurat un token de Replicate pe server
     if (process.env.REPLICATE_API_TOKEN) {
-      // Aici se va face integrarea reală cu Replicate API pentru randare 3D avansată
-      // Momentan păstrăm fluxul stabil și pregătit pentru producție
+      try {
+        // 1. Inițiem predicția pe Replicate (folosind un model stabil de image-to-image / SDXL)
+        const responseAI = await fetch('https://api.replicate.com/v1/predictions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            // Folosim modelul SDXL img2img sau un model general de pe Replicate
+            version: "7762fd07cf82c948538e41f63f7d068bf62fc1f6810ad1334bdc31d6f5170d2f",
+            input: {
+              image: roomImageBase64,
+              prompt: `A professional interior design photo of a ${roomType || 'room'}, ${styleKey} style, high-end furniture, luxury decor, photorealistic, 8k resolution`,
+              prompt_strength: 0.75,
+              num_outputs: 1
+            }
+          })
+        });
+
+        let prediction = await responseAI.json();
+
+        if (prediction && prediction.id) {
+          // 2. Verificăm periodic starea (pooling) până când AI-ul termină de randat poza
+          let getUrl = prediction.urls.get;
+          let status = prediction.status;
+
+          while (status !== "succeeded" && status !== "failed" && status !== "canceled") {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Așteptăm 2 secunde între verificări
+            const checkRes = await fetch(getUrl, {
+              headers: {
+                'Authorization': `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                'Content-Type': 'application/json',
+              }
+            });
+            const checkData = await checkRes.json();
+            status = checkData.status;
+            if (status === "succeeded" && checkData.output) {
+              finalRenderUrl = Array.isArray(checkData.output) ? checkData.output[0] : checkData.output;
+            }
+          }
+        }
+      } catch (aiError) {
+        console.log("Erore în procesarea AI, s-a folosit imaginea inițială:", aiError.message);
+      }
     }
 
     res.json({
@@ -55,12 +97,12 @@ app.post('/redecorate', async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Erore in server:", error);
+    console.error("Erore în server:", error);
     res.status(500).json({ error: 'A apărut o eroare internă pe server.' });
   }
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Serverul rulează cu succes pe portul ${PORT}`);
+  console.log(`Serverul rulează pe portul ${PORT}`);
 });
