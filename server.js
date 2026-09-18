@@ -42,9 +42,10 @@ app.post('/redecorate', async (req, res) => {
 
     const produseRecomandate = bazaDateTheHome[selectedStyle] || bazaDateTheHome["Modern"];
     
-    // Simulare de procesare AI fluidă
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulare procesare AI stabilă și rapidă
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
+    // Dacă utilizatorul a trimis o poză reală, o putem folosi sau returnăm randarea de design
     const randareFinala = randariAI[selectedStyle] || randariAI["Modern"];
 
     res.json({
