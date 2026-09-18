@@ -25,7 +25,8 @@ const bazaDateTheHome = {
   ]
 };
 
-const randariAI = {
+// Randări de design interior adaptate pentru fiecare stil în parte
+const randariStiluri = {
   "Modern": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80",
   "Scandinav": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1000&q=80",
   "Industrial": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
@@ -42,15 +43,15 @@ app.post('/redecorate', async (req, res) => {
 
     const produseRecomandate = bazaDateTheHome[selectedStyle] || bazaDateTheHome["Modern"];
     
-    // Simulare procesare AI stabilă și rapidă
+    // Simulare de procesare AI stabilă (1 secundă)
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Dacă utilizatorul a trimis o poză reală, o putem folosi sau returnăm randarea de design
-    const randareFinala = randariAI[selectedStyle] || randariAI["Modern"];
+    // Selectăm imaginea redecorată corespunzătoare stilului ales
+    const imagineRedecorata = randariStiluri[selectedStyle] || randariStiluri["Modern"];
 
     res.json({
       success: true,
-      uniqueAiRenderUrl: randareFinala,
+      uniqueAiRenderUrl: imagineRedecorata,
       theHomeProducts: produseRecomandate
     });
 
