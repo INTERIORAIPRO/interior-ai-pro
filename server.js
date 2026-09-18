@@ -34,16 +34,9 @@ app.post('/redecorate', async (req, res) => {
     }
 
     const produseRecomandate = bazaDateTheHome[selectedStyle] || bazaDateTheHome["Modern"];
-    const apiToken = process.env.REPLICATE_API_TOKEN;
-
-    if (!apiToken) {
-      console.log("Lipsește REPLICATE_API_TOKEN în mediul Render.");
-      return res.json({
-        success: true,
-        uniqueAiRenderUrl: roomImageBase64,
-        theHomeProducts: produseRecomandate
-      });
-    }
+    
+    // Introducem token-ul direct aici pentru siguranță maximă
+    const apiToken = "r8_1Td************************************"; 
 
     const responseReplicate = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
