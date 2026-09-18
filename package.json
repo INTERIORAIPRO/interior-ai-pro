@@ -1,13 +1,14 @@
 {
   "name": "interior-ai-pro-server",
   "version": "1.0.0",
-  "description": "Server pentru Interior AI Pro",
+  "description": "Server backend pentru Interior AI Pro cu Replicate API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.18.2",
+    "replicate": "^0.25.2"
   }
 }
