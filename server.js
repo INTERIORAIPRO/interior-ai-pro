@@ -26,7 +26,7 @@ const bazaDateTheHome = {
   ]
 };
 
-// Imagini de randare distincte pentru fiecare stil în parte
+// Imagini de randare distincte pentru fiecare stil
 const randariAIStiluri = {
   "Modern": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80",
   "Scandinav": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1000&q=80",
@@ -41,7 +41,6 @@ app.post('/redecorate', async (req, res) => {
     const produseRecomandate = bazaDateTheHome[selectedStyle] || bazaDateTheHome["Modern"];
     const imagineGenerata = randariAIStiluri[selectedStyle] || randariAIStiluri["Modern"];
     
-    // Simulare procesare AI
     await new Promise(resolve => setTimeout(resolve, 800));
 
     res.json({
