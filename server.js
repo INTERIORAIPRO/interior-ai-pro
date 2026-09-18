@@ -37,14 +37,15 @@ app.post('/redecorate', async (req, res) => {
     const apiToken = process.env.REPLICATE_API_TOKEN;
 
     if (!apiToken) {
-      return res.json({
+      console.log("Lipsește REPLICATE_API_TOKEN în mediul Render.");
+      return.json({
         success: true,
         uniqueAiRenderUrl: roomImageBase64,
         theHomeProducts: produseRecomandate
       });
     }
 
-    // Apel oficial către Replicate folosind modelul de design interior / img2img
+    // Folosim un model testat pe Replicate pentru interior design / img2img
     const responseReplicate = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
@@ -52,38 +53,42 @@ app.post('/redecorate', async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        version: "5c7d5dc6dd8bf75c1acaa8565735e7984bc5b8529f7960e6e06882997b7b1580", // Model Stable Diffusion dedicat pentru transformări
+        version: "7762fd07cf82c948538e41f63f7d068bf62fc1d8dd1d0fbe7ea694efb2ad1222",
         input: {
           image: roomImageBase64,
-          prompt: `A professional luxury interior design of a ${roomType}, ${selectedStyle} style, high-end furniture, photorealistic, architectural digest`,
-          prompt_strength: 0.75,
-          num_outputs: 1
+          prompt: `Interior design of a ${roomType}, ${selectedStyle} style, luxury furniture, professional interior photography, photorealistic, 4k`,
+          prompt_strength: 0.8,
+          num_inference_steps: 25
         }
       })
     });
 
     const prediction = await responseReplicate.json();
+    
+    if (prediction.detail) {
+      console.error("Eroare returnată de Replicate:", prediction.detail);
+      return res.status(500).json({ error: "Eroare de la API-ul Replicate: " + prediction.detail });
+    }
 
     let outputImageUrl = roomImageBase64;
-    if (prediction && prediction.urls && prediction.urls.get) {
-      // Preluăm rezultatul generat de la Replicate
-      let getUrl = prediction.urls.get;
-      let status = prediction.status;
-      let resultData = prediction;
+    let getUrl = prediction.urls ? prediction.urls.get : null;
+    let status = prediction.status;
+    let resultData = prediction;
 
-      // Buclă scurtă de așteptare pentru finalizarea randării AI
-      while (status !== "succeeded" && status !== "failed") {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const checkRes = await fetch(getUrl, {
-          headers: { "Authorization": `Bearer ${apiToken}` }
-        });
-        resultData = await checkRes.json();
-        status = resultData.status;
-      }
+    // Așteptăm ca Replicate să termine procesarea imaginii (maxim 30-40 secunde)
+    let attempts = 0;
+    while (status !== "succeeded" && status !== "failed" && getUrl && attempts < 15) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      attempts++;
+      const checkRes = await fetch(getUrl, {
+        headers: { "Authorization": `Bearer ${apiToken}` }
+      });
+      resultData = await checkRes.json();
+      status = resultData.status;
+    }
 
-      if (status === "succeeded" && resultData.output && resultData.output.length > 0) {
-        outputImageUrl = resultData.output[0];
-      }
+    if (status === "succeeded" && resultData.output) {
+      outputImageUrl = Array.isArray(resultData.output) ? resultData.output[0] : resultData.output;
     }
 
     res.json({
