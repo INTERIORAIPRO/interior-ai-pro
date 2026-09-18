@@ -38,14 +38,13 @@ app.post('/redecorate', async (req, res) => {
 
     if (!apiToken) {
       console.log("Lipsește REPLICATE_API_TOKEN în mediul Render.");
-      return.json({
+      return res.json({
         success: true,
         uniqueAiRenderUrl: roomImageBase64,
         theHomeProducts: produseRecomandate
       });
     }
 
-    // Folosim un model testat pe Replicate pentru interior design / img2img
     const responseReplicate = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
@@ -75,7 +74,6 @@ app.post('/redecorate', async (req, res) => {
     let status = prediction.status;
     let resultData = prediction;
 
-    // Așteptăm ca Replicate să termine procesarea imaginii (maxim 30-40 secunde)
     let attempts = 0;
     while (status !== "succeeded" && status !== "failed" && getUrl && attempts < 15) {
       await new Promise(resolve => setTimeout(resolve, 3000));
