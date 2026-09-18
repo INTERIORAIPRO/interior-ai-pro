@@ -83,7 +83,7 @@ app.post('/redecorate', async (req, res) => {
   }
 });
 
-// Setarea corectă a portului pentru Render (folosește portul alocat sau 10000)
+// Setarea corectă a portului pentru Render
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Serverul rulează pe portul ${PORT}`);
